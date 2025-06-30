@@ -124,9 +124,9 @@
 </head>
 <body>
   <div class="carousel-container">
-    <div class="arrow left" id="prevBtn"><img src="arrow-left.png" alt="Previous" /></div>
+    <div class="arrow left" id="prevBtn"><img src="arrows/arrow-left.png" alt="Previous" /></div>
     <div class="carousel-track" id="track"></div>
-    <div class="arrow right" id="nextBtn"><img src="arrow-right.png" alt="Next" /></div>
+    <div class="arrow right" id="nextBtn"><img src="arrows/arrow-right.png" alt="Next" /></div>
     <div class="dots" id="dots"></div>
   </div>
 
@@ -136,7 +136,7 @@
 
   <script>
     function generateImageList(prefix, count) {
-      return Array.from({ length: count }, (_, i) => `${prefix}${i + 1}.png`);
+      return Array.from({ length: count }, (_, i) => `biogs/${prefix}/${prefix}${i + 1}.png`);
     }
 
     const imagesPortrait = generateImageList("portrait", 10);
