@@ -153,6 +153,130 @@
   </style>
 </head>
 <body>
-  <!-- BODY OMITTED FOR BREVITY (unchanged) -->
+  <div class="carousel-container">
+    <div class="arrow left" id="prevBtn"><img src="arrows/backward-arrow.png" alt="Previous" /></div>
+    <div class="carousel-track" id="track"></div>
+    <div class="arrow right" id="nextBtn"><img src="arrows/forward-arrow.png" alt="Next" /></div>
+    <div class="dots" id="dots"></div>
+  </div>
+
+  <div class="popup" id="popup">
+    <span class="close" id="popupClose">&times;</span>
+    <img id="popupImg" src="" alt="Expanded" />
+  </div>
+
+  <script>
+    async function fetchLinks() {
+      if (window.location.protocol === 'file:') return [];
+      try {
+        const res = await fetch('links.txt');
+        const data = await res.text();
+        return data.trim().split("\n").map(line => {
+          const [index, label, url] = line.split(',').map(part => part.trim());
+          return { index: parseInt(index), label, url };
+        });
+      } catch (e) {
+        console.warn("Link file missing or unreadable.");
+        return [];
+      }
+    }
+
+    function generateImageList(prefix, count) {
+      return Array.from({ length: count }, (_, i) => `biogs/${prefix}/${prefix}${i + 1}.png`);
+    }
+
+    const imagesPortrait = generateImageList("portrait", 10);
+    const imagesLandscape = generateImageList("landscape", 10);
+
+    const isPortraitMode = () => window.innerWidth >= 1000;
+    const track = document.getElementById("track");
+    const dots = document.getElementById("dots");
+    const popup = document.getElementById("popup");
+    const popupImg = document.getElementById("popupImg");
+    const popupClose = document.getElementById("popupClose");
+    let currentIndex = 0;
+    let images = [];
+    let links = [];
+
+    async function renderCarousel() {
+      links = await fetchLinks();
+      images = isPortraitMode() ? imagesPortrait : imagesLandscape;
+      track.innerHTML = "";
+      dots.innerHTML = "";
+      let validCount = 0;
+
+      for (let i = 0; i < images.length; i++) {
+        const src = images[i];
+        const img = new Image();
+        img.src = src;
+        await new Promise(res => {
+          img.onload = () => res(true);
+          img.onerror = () => res(false);
+        });
+        if (!img.complete || img.naturalWidth === 0) continue;
+
+        const div = document.createElement("div");
+        div.className = "carousel-image loaded";
+        const linkEntry = links.find(l => l.index === i + 1);
+        const link = linkEntry?.url || "#";
+
+        img.onclick = () => window.open(link, "_blank");
+
+        const tag = document.createElement("div");
+        tag.className = "corner-tag";
+        const plus = document.createElement("span");
+        plus.textContent = "+";
+        tag.appendChild(plus);
+        tag.onclick = (e) => {
+          e.stopPropagation();
+          popupImg.src = src;
+          popup.classList.add("visible");
+        };
+
+        div.appendChild(img);
+        div.appendChild(tag);
+        track.appendChild(div);
+
+        const dot = document.createElement("div");
+        dot.className = "dot";
+        if (validCount === 0) dot.classList.add("active");
+        dots.appendChild(dot);
+        validCount++;
+      }
+
+      updateCarousel();
+    }
+
+    function updateCarousel() {
+      const width = document.querySelector(".carousel-image")?.offsetWidth || 0;
+      track.scrollTo({ left: width * currentIndex, behavior: 'smooth' });
+      dots.childNodes.forEach((dot, i) => dot.classList.toggle("active", i === currentIndex));
+      document.getElementById("prevBtn").style.display = currentIndex === 0 ? "none" : "block";
+      document.getElementById("nextBtn").style.display = currentIndex >= dots.childNodes.length - 1 ? "none" : "block";
+    }
+
+    document.getElementById("prevBtn").onclick = () => {
+      if (currentIndex > 0) { currentIndex--; updateCarousel(); }
+    };
+
+    document.getElementById("nextBtn").onclick = () => {
+      if (currentIndex < dots.childNodes.length - 1) { currentIndex++; updateCarousel(); }
+    };
+
+    popupClose.onclick = () => popup.classList.remove("visible");
+    popup.onclick = (e) => { if (e.target === popup) popup.classList.remove("visible"); };
+    window.addEventListener("resize", renderCarousel);
+
+    let startX = 0;
+    track.addEventListener("touchstart", (e) => { startX = e.touches[0].clientX; });
+    track.addEventListener("touchend", (e) => {
+      const diff = e.changedTouches[0].clientX - startX;
+      if (diff > 50 && currentIndex > 0) currentIndex--;
+      else if (diff < -50 && currentIndex < dots.childNodes.length - 1) currentIndex++;
+      updateCarousel();
+    });
+
+    renderCarousel();
+  </script>
 </body>
 </html>
