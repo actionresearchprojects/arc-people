@@ -39,7 +39,7 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      margin-right: 32px;
+      margin-right: 24px;
     }
     .carousel-image img {
       max-height: 100%;
@@ -55,17 +55,24 @@
       position: absolute;
       bottom: 0;
       right: 0;
-      width: 80px;
-      height: 80px;
+      width: 60px;
+      height: 60px;
       background: #fae64d;
       clip-path: polygon(100% 0, 0% 100%, 100% 100%);
       cursor: pointer;
-      z-index: 5;
+      z-index: 20;
       border-bottom-right-radius: 12px;
       display: none;
+      font-weight: bold;
+      color: black;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      padding: 4px;
+      font-size: 18px;
     }
     .carousel-image.loaded .corner-tag {
-      display: block;
+      display: flex;
     }
     .arrow {
       position: absolute;
@@ -81,7 +88,7 @@
     .arrow.left { left: 10px; }
     .arrow.right { right: 10px; }
     .arrow img {
-      width: clamp(40px, 6vw, 80px);
+      width: clamp(60px, 8vw, 100px);
       height: auto;
     }
     .dots {
@@ -92,17 +99,18 @@
       justify-content: center;
       gap: 10px;
       pointer-events: none;
+      z-index: 30;
     }
     .dot {
       width: 14px;
       height: 14px;
       background: #fff;
       border-radius: 50%;
-      box-shadow: 0 0 8px rgba(0, 0, 0, 0.9), 0 0 5px rgba(255,255,255,0.8);
+      box-shadow: 0 0 8px rgba(0, 0, 0, 1), 0 0 6px rgba(255,255,255,1);
     }
     .dot.active {
       background: #fff;
-      box-shadow: 0 0 12px white, 0 0 4px #fff;
+      box-shadow: 0 0 14px white, 0 0 6px #fff;
     }
     .popup {
       position: fixed;
@@ -138,6 +146,10 @@
       inset: 0;
       background: rgba(255,255,255,0.05);
       border-radius: 12px;
+      z-index: 1;
+    }
+    .carousel-image .corner-tag:hover ~ ::after {
+      content: none;
     }
   </style>
 </head>
@@ -213,6 +225,7 @@
 
         const tag = document.createElement("div");
         tag.className = "corner-tag";
+        tag.textContent = "+";
         tag.onclick = (e) => {
           e.stopPropagation();
           popupImg.src = src;
