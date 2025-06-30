@@ -10,6 +10,7 @@
       --arrow-size: clamp(3rem, 8vw, 5rem);
       --vertical-gap: 0.5vh;
       --horizontal-gap: 0.375rem;
+      --dots-offset: 2vh;
     }
     *, *::before, *::after { box-sizing: border-box; }
     html, body {
@@ -96,6 +97,10 @@
       cursor: pointer;
       padding: 0;
       z-index: 10;
+      transition: transform 0.1s ease;
+    }
+    .arrow:active {
+      transform: translateY(-50%) scale(0.9);
     }
     .arrow.left { left: var(--horizontal-gap); }
     .arrow.right { right: var(--horizontal-gap); }
@@ -105,7 +110,7 @@
     }
     .dots-wrapper {
       position: absolute;
-      bottom: var(--vertical-gap);
+      bottom: var(--dots-offset);
       left: 50%;
       transform: translateX(-50%);
       padding: 0.375rem 0.75rem;
@@ -144,16 +149,8 @@
       max-width: 98vw;
       max-height: 98vh;
       object-fit: contain;
-    }
-    .popup .close {
-      position: absolute;
-      top: 1.25rem;
-      right: 1.875rem;
-      font-size: 2.25rem;
-      color: #fff;
-      background: none;
-      border: none;
-      cursor: pointer;
+      border: 0.375rem solid #000;
+      border-radius: var(--border-radius);
     }
   </style>
 </head>
@@ -165,7 +162,6 @@
     <div class="dots-wrapper" role="navigation" aria-label="Carousel pagination" id="dots"></div>
   </div>
   <div class="popup" id="popup" role="dialog" aria-modal="true">
-    <button class="close" id="popupClose" aria-label="Close expanded image">&times;</button>
     <img id="popupImg" src="" alt="Expanded view" />
   </div>
   <script>
@@ -251,10 +247,8 @@
     const track = document.getElementById('track');
     const dots = document.getElementById('dots');
     const popup = document.getElementById('popup');
-    const popupClose = document.getElementById('popupClose');
     prevBtn.onclick = () => { if (currentIndex > 0) currentIndex--, scrollToIndex(); };
     nextBtn.onclick = () => { if (currentIndex < track.children.length - 1) currentIndex++, scrollToIndex(); };
-    popupClose.onclick = () => popup.classList.remove('visible');
     popup.onclick = e => { if (e.target === popup) popup.classList.remove('visible'); };
     window.addEventListener('resize', renderCarousel);
     document.addEventListener('DOMContentLoaded', renderCarousel);
