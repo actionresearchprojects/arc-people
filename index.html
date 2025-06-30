@@ -56,7 +56,7 @@
       align-items: center;
       justify-content: center;
     }
-    /* Hover overlay on both container hover and button hover */
+    /* show overlay on image or button hover */
     .carousel-image:hover::after,
     .carousel-image.hover::after {
       content: "";
@@ -90,6 +90,7 @@
       transform: translate(0.25rem, -0.25rem);
       font-size: 1.5rem;
       font-weight: bold;
+      pointer-events: none;
     }
     .arrow {
       position: absolute;
@@ -175,14 +176,14 @@
         return [];
       }
     }
-
     function generateImages(prefix, count) {
       return Array.from({ length: count }, (_, i) => `biogs/${prefix}/${prefix}${i+1}.png`);
     }
-
+    // define image lists upfront
+    const imagesPortrait = generateImages('portrait', 10);
+    const imagesLandscape = generateImages('landscape', 10);
     let links = [];
     let currentIndex = 0;
-
     function createImageSlide(src, label, linkUrl, idx) {
       const container = document.createElement('div');
       container.className = 'carousel-image';
@@ -195,90 +196,70 @@
       img.tabIndex = 0;
       img.onclick = () => window.open(linkUrl, '_blank');
 
-      const btn = document.createElement('button');
-      const plus = document.createElement('span');
-      plus.textContent = '+';
-      btn.appendChild(plus);
-      btn.onclick = e => {
-        e.stopPropagation();
-        const landscapeSrc = imagesLandscape[idx];
-        document.getElementById('popupImg').src = landscapeSrc;
-        popup.classList.add('visible');
-      };
-      btn.setAttribute('aria-label', 'Expand image');
+      container.append(img);
 
-      // ensure overlay also appears when hovering the button
-      btn.addEventListener('mouseenter', () => container.classList.add('hover'));
-      btn.addEventListener('mouseleave', () => container.classList.remove('hover'));
+      // only show expand triangle and popup on wide viewports
+      if (window.innerWidth >= 1000) {
+        const btn = document.createElement('button');
+        const plus = document.createElement('span'); plus.textContent = '+';
+        btn.appendChild(plus);
+        btn.onclick = e => {
+          e.stopPropagation();
+          document.getElementById('popupImg').src = imagesLandscape[idx];
+          popup.classList.add('visible');
+        };
+        btn.setAttribute('aria-label', 'Expand image');
+        btn.addEventListener('mouseenter', () => container.classList.add('hover'));
+        btn.addEventListener('mouseleave', () => container.classList.remove('hover'));
+        container.append(btn);
+      }
 
-      container.append(img, btn);
       return container;
     }
-
     async function renderCarousel() {
       links = await fetchLinks();
       const isWide = window.innerWidth >= 1000;
       const sources = isWide ? imagesPortrait : imagesLandscape;
-
-      const slidePromises = sources.map((src, i) => new Promise(resolve => {
-        const tester = new Image();
-        tester.onload = () => resolve({ src, idx: i });
-        tester.onerror = () => resolve(null);
-        tester.src = src;
-      }));
-
-      const loaded = (await Promise.all(slidePromises)).filter(x => x !== null);
+      const loaded = (await Promise.all(sources.map((src,i) => new Promise(r=>{
+        const t=new Image(); t.onload=()=>r({src,i}); t.onerror=()=>r(null); t.src=src;
+      })))).filter(Boolean);
       track.innerHTML = '';
-
-      loaded.forEach(({ src, idx }, i) => {
-        const entry = links.find(l => l.index === idx+1) || {};
-        const slide = createImageSlide(src, entry.label, entry.url || '#', idx);
-        track.append(slide);
+      loaded.forEach(({src,i},idx)=>{
+        const entry=links.find(l=>l.index===i+1)||{};
+        track.append(createImageSlide(src,entry.label,entry.url||'#',i));
       });
-
       updateControls(loaded.length);
       renderDots(loaded.length);
       scrollToIndex();
     }
-
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const track = document.getElementById('track');
-    const dots = document.getElementById('dots');
-    const popup = document.getElementById('popup');
-    const imagesPortrait = generateImages('portrait', 10);
-    const imagesLandscape = generateImages('landscape', 10);
-
-    function updateControls(count) {
-      prevBtn.style.display = currentIndex === 0 ? 'none' : 'block';
-      nextBtn.style.display = currentIndex >= count - 1 ? 'none' : 'block';
+    const prevBtn=document.getElementById('prevBtn'), nextBtn=document.getElementById('nextBtn');
+    const track=document.getElementById('track'), dots=document.getElementById('dots');
+    const popup=document.getElementById('popup');
+    function updateControls(count){
+      prevBtn.style.display=currentIndex===0?'none':'block';
+      nextBtn.style.display=currentIndex>=count-1?'none':'block';
     }
-
-    function renderDots(count) {
-      dots.innerHTML = '';
-      for (let i = 0; i < count; i++) {
-        const button = document.createElement('button');
-        button.className = i === currentIndex ? 'active' : '';
-        button.setAttribute('aria-label', `Go to image ${i+1}`);
-        button.onclick = () => { currentIndex = i; scrollToIndex(); };
-        dots.appendChild(button);
+    function renderDots(count){
+      dots.innerHTML='';
+      for(let i=0;i<count;i++){
+        const btn=document.createElement('button');
+        btn.className=i===currentIndex?'active':'';
+        btn.setAttribute('aria-label',`Go to image ${i+1}`);
+        btn.onclick=()=>{currentIndex=i;scrollToIndex();};
+        dots.appendChild(btn);
       }
     }
-
-    function scrollToIndex() {
-      const slide = track.children[currentIndex];
-      if (!slide) return;
-      track.scrollTo({ left: slide.offsetLeft, behavior: 'smooth' });
-      Array.from(dots.children).forEach((btn, i) => btn.classList.toggle('active', i === currentIndex));
+    function scrollToIndex(){
+      const slide=track.children[currentIndex]; if(!slide)return;
+      track.scrollTo({left:slide.offsetLeft,behavior:'smooth'});
+      Array.from(dots.children).forEach((b,i)=>b.classList.toggle('active',i===currentIndex));
       updateControls(track.children.length);
     }
-
-    prevBtn.onclick = () => { if (currentIndex > 0) currentIndex--, scrollToIndex(); };
-    nextBtn.onclick = () => { if (currentIndex < track.children.length - 1) currentIndex++, scrollToIndex(); };
-    popup.onclick = e => { if (e.target === popup) popup.classList.remove('visible'); };
-
-    window.addEventListener('resize', renderCarousel);
-    document.addEventListener('DOMContentLoaded', renderCarousel);
+    prevBtn.onclick=()=>{if(currentIndex>0)currentIndex--,scrollToIndex();};
+    nextBtn.onclick=()=>{if(currentIndex<track.children.length-1)currentIndex++,scrollToIndex();};
+    popup.onclick=e=>{if(e.target===popup)popup.classList.remove('visible');};
+    window.addEventListener('resize',renderCarousel);
+    document.addEventListener('DOMContentLoaded',renderCarousel);
   </script>
 </body>
 </html>
