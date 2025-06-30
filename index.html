@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
+    :root {
+      --border-radius: 2rem;
+      --dot-size: 0.875rem;
+      --arrow-size: clamp(3rem, 8vw, 5rem);
+      --vertical-gap: 0.5vh;
+      --horizontal-gap: 0.375rem;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
     html, body {
       margin: 0;
       padding: 0;
@@ -17,273 +25,239 @@
       position: relative;
       width: 100%;
       height: 100%;
-      overflow: hidden;
+      padding-top: var(--vertical-gap);
+      padding-bottom: var(--vertical-gap);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .carousel-track {
       display: flex;
-      transition: transform 0.3s ease;
-      height: 100%;
+      align-items: center;
+      gap: var(--horizontal-gap);
       scroll-behavior: smooth;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
+      width: 100%;
+      height: calc(100% - (var(--vertical-gap) * 2));
     }
-    .carousel-track::-webkit-scrollbar {
-      display: none;
-    }
+    .carousel-track::-webkit-scrollbar { display: none; }
     .carousel-image {
       position: relative;
       flex: 0 0 auto;
+      border-radius: var(--border-radius);
+      border: 0.1875rem solid #000;
+      overflow: hidden;
+      background: #f0f0f0;
       height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
-      margin-right: 4px;
+    }
+    .carousel-image:hover::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.05);
+      border-radius: var(--border-radius);
+      z-index: 1;
     }
     .carousel-image img {
-      max-height: 100%;
-      max-width: 100%;
-      object-fit: contain;
-      border-radius: 12px;
-      display: none;
-    }
-    .carousel-image.loaded img {
       display: block;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
     }
-    .corner-tag {
+    .carousel-image button {
       position: absolute;
-      bottom: 8px;
-      right: 8px;
-      width: clamp(36px, 6vw, 52px);
-      height: clamp(36px, 6vw, 52px);
-      background: linear-gradient(to bottom, #fae64d, #f5c63d);
-      border-bottom-right-radius: 18px;
-      clip-path: polygon(100% 0, 0% 100%, 100% 100%);
+      bottom: var(--horizontal-gap);
+      right: var(--horizontal-gap);
+      width: clamp(3rem, 6vw, 4rem);
+      height: clamp(3rem, 6vw, 4rem);
+      background: linear-gradient(to bottom, #fae64d, #f4c24d);
+      clip-path: polygon(100% 0%, 100% 100%, 0% 100%);
+      border: none;
       cursor: pointer;
-      z-index: 20;
-      display: flex;
-      align-items: flex-end;
-      justify-content: flex-end;
-      padding: 6px;
+      z-index: 2;
+    }
+    .carousel-image button span {
+      display: inline-block;
+      transform: translate(0.25rem, -0.25rem);
+      font-size: 1.5rem;
       font-weight: bold;
-      color: black;
-    }
-    .corner-tag span {
-      margin-bottom: 2px;
-      margin-right: 2px;
-      font-size: 24px;
-      font-family: Ubuntu, sans-serif;
-    }
-    .carousel-image.loaded .corner-tag {
-      display: flex;
     }
     .arrow {
       position: absolute;
       top: 50%;
-      transform: translateY(-50%) scale(1);
-      z-index: 10;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
       cursor: pointer;
-      transition: transform 0.1s ease;
+      padding: 0;
+      z-index: 10;
     }
-    .arrow:active {
-      transform: translateY(-50%) scale(0.9);
-    }
-    .arrow.left { left: 10px; }
-    .arrow.right { right: 10px; }
+    .arrow.left { left: var(--horizontal-gap); }
+    .arrow.right { right: var(--horizontal-gap); }
     .arrow img {
-      width: clamp(80px, 10vw, 120px);
+      width: var(--arrow-size);
       height: auto;
     }
     .dots-wrapper {
       position: absolute;
-      bottom: 10px;
+      bottom: var(--vertical-gap);
       left: 50%;
       transform: translateX(-50%);
-      padding: 8px 16px;
+      padding: 0.375rem 0.75rem;
       background: rgba(0, 0, 0, 0.08);
-      border-radius: 20px;
-      backdrop-filter: blur(4px);
-      z-index: 1001;
+      border-radius: 1.25rem;
+      backdrop-filter: blur(1.5px);
       display: flex;
-      justify-content: center;
-      align-items: center;
+      gap: var(--horizontal-gap);
+      z-index: 10;
     }
-    .dots {
-      display: flex;
-      gap: 10px;
-    }
-    .dot {
-      width: 14px;
-      height: 14px;
-      background: rgba(255, 255, 255, 0.9);
+    .dots-wrapper button {
+      width: var(--dot-size);
+      height: var(--dot-size);
+      background: rgba(255,255,255,0.9);
+      border: none;
       border-radius: 50%;
+      cursor: pointer;
     }
-    .dot.active {
-      background: #ffffff;
-      outline: 2px solid rgba(0, 0, 0, 0.4);
+    .dots-wrapper button.active {
+      outline: 0.125rem solid rgba(0,0,0,0.7);
     }
     .popup {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0,0,0,0.8);
       display: flex;
       align-items: center;
       justify-content: center;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.3s ease;
-      z-index: 1000;
+      z-index: 100;
     }
-    .popup.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
+    .popup.visible { opacity: 1; pointer-events: auto; }
     .popup img {
-      max-width: 90%;
-      max-height: 90%;
+      max-width: 98vw;
+      max-height: 98vh;
+      object-fit: contain;
     }
     .popup .close {
       position: absolute;
-      top: 20px;
-      right: 30px;
-      font-size: 36px;
-      color: white;
+      top: 1.25rem;
+      right: 1.875rem;
+      font-size: 2.25rem;
+      color: #fff;
+      background: none;
+      border: none;
       cursor: pointer;
-    }
-    .carousel-image:hover:not(:has(.corner-tag:hover))::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: rgba(255,255,255,0.05);
-      border-radius: 12px;
-      z-index: 1;
     }
   </style>
 </head>
 <body>
   <div class="carousel-container">
-    <div class="arrow left" id="prevBtn"><img src="arrows/backward-arrow.png" alt="Previous" /></div>
-    <div class="carousel-track" id="track"></div>
-    <div class="arrow right" id="nextBtn"><img src="arrows/forward-arrow.png" alt="Next" /></div>
-    <div class="dots-wrapper"><div class="dots" id="dots"></div></div>
+    <button class="arrow left" id="prevBtn" aria-label="Previous image"><img src="arrows/backward-arrow.png" alt="Previous" /></button>
+    <div class="carousel-track" id="track" tabindex="0" role="list"></div>
+    <button class="arrow right" id="nextBtn" aria-label="Next image"><img src="arrows/forward-arrow.png" alt="Next" /></button>
+    <div class="dots-wrapper" role="navigation" aria-label="Carousel pagination" id="dots"></div>
   </div>
-  <div class="popup" id="popup">
-    <span class="close" id="popupClose">&times;</span>
-    <img id="popupImg" src="" alt="Expanded" />
+  <div class="popup" id="popup" role="dialog" aria-modal="true">
+    <button class="close" id="popupClose" aria-label="Close expanded image">&times;</button>
+    <img id="popupImg" src="" alt="Expanded view" />
   </div>
   <script>
     async function fetchLinks() {
-      if (window.location.protocol === 'file:') return [];
       try {
         const res = await fetch('links.txt');
-        const data = await res.text();
-        return data.trim().split("\n").map(line => {
-          const [index, label, url] = line.split(',').map(part => part.trim());
-          return { index: parseInt(index), label, url };
+        if (!res.ok) return [];
+        return (await res.text()).trim().split('\n').map(line => {
+          const [index, label, url] = line.split(',').map(p => p.trim());
+          return { index: +index, label, url };
         });
-      } catch (e) {
-        console.warn("Link file missing or unreadable.");
+      } catch {
         return [];
       }
     }
-
-    function generateImageList(prefix, count) {
-      return Array.from({ length: count }, (_, i) => `biogs/${prefix}/${prefix}${i + 1}.png`);
+    function generateImages(prefix, count) {
+      return Array.from({ length: count }, (_, i) => `biogs/${prefix}/${prefix}${i+1}.png`);
     }
-
-    const imagesPortrait = generateImageList("portrait", 10);
-    const imagesLandscape = generateImageList("landscape", 10);
-
-    const isPortraitMode = () => window.innerWidth >= 1000;
-    const track = document.getElementById("track");
-    const dots = document.getElementById("dots");
-    const popup = document.getElementById("popup");
-    const popupImg = document.getElementById("popupImg");
-    const popupClose = document.getElementById("popupClose");
-    let currentIndex = 0;
-    let images = [];
+    const imagesPortrait = generateImages('portrait', 10);
+    const imagesLandscape = generateImages('landscape', 10);
     let links = [];
-
+    let currentIndex = 0;
+    function createImageSlide(src, label, linkUrl, idx) {
+      const container = document.createElement('div');
+      container.className = 'carousel-image';
+      container.setAttribute('role', 'listitem');
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = label || `Image ${idx+1}`;
+      img.loading = 'lazy';
+      img.tabIndex = 0;
+      img.onclick = () => window.open(linkUrl, '_blank');
+      const btn = document.createElement('button');
+      const plus = document.createElement('span');
+      plus.textContent = '+';
+      btn.appendChild(plus);
+      btn.onclick = e => {
+        e.stopPropagation();
+        const landscapeSrc = imagesLandscape[idx];
+        document.getElementById('popupImg').src = landscapeSrc;
+        popup.classList.add('visible');
+      };
+      btn.setAttribute('aria-label', 'Expand image');
+      container.append(img, btn);
+      return container;
+    }
+    function updateControls(count) {
+      prevBtn.style.display = currentIndex === 0 ? 'none' : 'block';
+      nextBtn.style.display = currentIndex >= count - 1 ? 'none' : 'block';
+    }
+    function renderDots(count) {
+      dots.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const button = document.createElement('button');
+        button.className = i === currentIndex ? 'active' : '';
+        button.setAttribute('aria-label', `Go to image ${i+1}`);
+        button.onclick = () => { currentIndex = i; scrollToIndex(); };
+        dots.appendChild(button);
+      }
+    }
+    function scrollToIndex() {
+      const slide = track.children[currentIndex];
+      track.scrollTo({ left: slide.offsetLeft, behavior: 'smooth' });
+      Array.from(dots.children).forEach((btn, i) => btn.classList.toggle('active', i === currentIndex));
+      updateControls(track.children.length);
+    }
     async function renderCarousel() {
       links = await fetchLinks();
-      images = isPortraitMode() ? imagesPortrait : imagesLandscape;
-      track.innerHTML = "";
-      dots.innerHTML = "";
-      let validCount = 0;
-
-      for (let i = 0; i < images.length; i++) {
-        const src = images[i];
-        const img = new Image();
-        img.src = src;
-        await new Promise(res => {
-          img.onload = () => res(true);
-          img.onerror = () => res(false);
-        });
-        if (!img.complete || img.naturalWidth === 0) continue;
-
-        const div = document.createElement("div");
-        div.className = "carousel-image loaded";
-        const linkEntry = links.find(l => l.index === i + 1);
-        const link = linkEntry?.url || "#";
-
-        img.onclick = () => window.open(link, "_blank");
-
-        const tag = document.createElement("div");
-        tag.className = "corner-tag";
-        const plus = document.createElement("span");
-        plus.textContent = "+";
-        tag.appendChild(plus);
-        tag.onclick = (e) => {
-          e.stopPropagation();
-          popupImg.src = src;
-          popup.classList.add("visible");
-        };
-
-        div.appendChild(img);
-        div.appendChild(tag);
-        track.appendChild(div);
-
-        const dot = document.createElement("div");
-        dot.className = "dot";
-        if (validCount === 0) dot.classList.add("active");
-        dots.appendChild(dot);
-        validCount++;
-      }
-
-      updateCarousel();
+      const isWide = window.innerWidth >= 1000;
+      const sources = isWide ? imagesPortrait : imagesLandscape;
+      track.innerHTML = '';
+      sources.forEach((src, i) => {
+        const entry = links.find(l => l.index === i+1) || {};
+        const slide = createImageSlide(src, entry.label, entry.url || '#', i);
+        track.append(slide);
+      });
+      updateControls(sources.length);
+      renderDots(sources.length);
+      scrollToIndex();
     }
-
-    function updateCarousel() {
-      const width = document.querySelector(".carousel-image")?.offsetWidth || 0;
-      track.scrollTo({ left: width * currentIndex, behavior: 'smooth' });
-      dots.childNodes.forEach((dot, i) => dot.classList.toggle("active", i === currentIndex));
-      document.getElementById("prevBtn").style.display = currentIndex === 0 ? "none" : "block";
-      document.getElementById("nextBtn").style.display = currentIndex >= dots.childNodes.length - 1 ? "none" : "block";
-    }
-
-    document.getElementById("prevBtn").onclick = () => {
-      if (currentIndex > 0) { currentIndex--; updateCarousel(); }
-    };
-
-    document.getElementById("nextBtn").onclick = () => {
-      if (currentIndex < dots.childNodes.length - 1) { currentIndex++; updateCarousel(); }
-    };
-
-    popupClose.onclick = () => popup.classList.remove("visible");
-    popup.onclick = (e) => { if (e.target === popup) popup.classList.remove("visible"); };
-    window.addEventListener("resize", renderCarousel);
-
-    let startX = 0;
-    track.addEventListener("touchstart", (e) => { startX = e.touches[0].clientX; });
-    track.addEventListener("touchend", (e) => {
-      const diff = e.changedTouches[0].clientX - startX;
-      if (diff > 50 && currentIndex > 0) currentIndex--;
-      else if (diff < -50 && currentIndex < dots.childNodes.length - 1) currentIndex++;
-      updateCarousel();
-    });
-
-    renderCarousel();
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const track = document.getElementById('track');
+    const dots = document.getElementById('dots');
+    const popup = document.getElementById('popup');
+    const popupClose = document.getElementById('popupClose');
+    prevBtn.onclick = () => { if (currentIndex > 0) currentIndex--, scrollToIndex(); };
+    nextBtn.onclick = () => { if (currentIndex < track.children.length - 1) currentIndex++, scrollToIndex(); };
+    popupClose.onclick = () => popup.classList.remove('visible');
+    popup.onclick = e => { if (e.target === popup) popup.classList.remove('visible'); };
+    window.addEventListener('resize', renderCarousel);
+    document.addEventListener('DOMContentLoaded', renderCarousel);
   </script>
 </body>
 </html>
