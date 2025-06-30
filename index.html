@@ -8,7 +8,7 @@
       margin: 0;
       padding: 0;
       background: transparent;
-      font-family: sans-serif;
+      font-family: Ubuntu, sans-serif;
       overflow: hidden;
       height: 100%;
       width: 100%;
@@ -39,7 +39,7 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      margin-right: 12px;
+      margin-right: 6px;
     }
     .carousel-image img {
       max-height: 100%;
@@ -57,7 +57,8 @@
       right: 0;
       width: 60px;
       height: 60px;
-      background: #fae64d;
+      background: linear-gradient(to right, #fae64d, #fff176);
+      border-bottom-right-radius: 12px;
       clip-path: polygon(100% 0, 0% 100%, 100% 100%);
       cursor: pointer;
       z-index: 20;
@@ -71,7 +72,8 @@
     .corner-tag span {
       margin-bottom: 4px;
       margin-right: 4px;
-      font-size: 22px;
+      font-size: 24px;
+      font-family: Ubuntu, sans-serif;
     }
     .carousel-image.loaded .corner-tag {
       display: flex;
@@ -93,26 +95,34 @@
       width: clamp(80px, 10vw, 120px);
       height: auto;
     }
-    .dots {
+    .dots-wrapper {
       position: absolute;
       bottom: 10px;
-      width: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 16px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      z-index: 1001;
       display: flex;
       justify-content: center;
+      align-items: center;
+    }
+    .dots {
+      display: flex;
       gap: 10px;
-      pointer-events: none;
-      z-index: 1001;
     }
     .dot {
       width: 14px;
       height: 14px;
-      background: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.9);
       border-radius: 50%;
-      box-shadow: 0 0 2px #000, 0 0 8px rgba(255,255,255,0.8);
+      box-shadow: 0 0 2px #000, 0 0 12px rgba(255,255,255,0.8);
     }
     .dot.active {
-      background: #fae64d;
-      box-shadow: 0 0 6px #fae64d, 0 0 12px #fae64d;
+      background: #ffffff;
+      box-shadow: 0 0 8px #ffffff, 0 0 14px #ffffff;
     }
     .popup {
       position: fixed;
@@ -157,14 +167,12 @@
     <div class="arrow left" id="prevBtn"><img src="arrows/backward-arrow.png" alt="Previous" /></div>
     <div class="carousel-track" id="track"></div>
     <div class="arrow right" id="nextBtn"><img src="arrows/forward-arrow.png" alt="Next" /></div>
-    <div class="dots" id="dots"></div>
+    <div class="dots-wrapper"><div class="dots" id="dots"></div></div>
   </div>
-
   <div class="popup" id="popup">
     <span class="close" id="popupClose">&times;</span>
     <img id="popupImg" src="" alt="Expanded" />
   </div>
-
   <script>
     async function fetchLinks() {
       if (window.location.protocol === 'file:') return [];
