@@ -53,12 +53,12 @@
     }
     .corner-tag {
       position: absolute;
-      bottom: 0;
-      right: 0;
-      width: 52px;
-      height: 52px;
+      bottom: 8px;
+      right: 8px;
+      width: clamp(36px, 6vw, 52px);
+      height: clamp(36px, 6vw, 52px);
       background: linear-gradient(to bottom, #fae64d, #f5c63d);
-      border-bottom-right-radius: 14px;
+      border-bottom-right-radius: 18px;
       clip-path: polygon(100% 0, 0% 100%, 100% 100%);
       cursor: pointer;
       z-index: 20;
@@ -101,9 +101,9 @@
       left: 50%;
       transform: translateX(-50%);
       padding: 8px 16px;
-      background: rgba(0, 0, 0, 0.15);
+      background: rgba(0, 0, 0, 0.08);
       border-radius: 20px;
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(4px);
       z-index: 1001;
       display: flex;
       justify-content: center;
@@ -118,11 +118,10 @@
       height: 14px;
       background: rgba(255, 255, 255, 0.9);
       border-radius: 50%;
-      box-shadow: none;
     }
     .dot.active {
       background: #ffffff;
-      box-shadow: none;
+      outline: 2px solid rgba(0, 0, 0, 0.4);
     }
     .popup {
       position: fixed;
