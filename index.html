@@ -135,8 +135,12 @@
   </div>
 
   <script>
-    const imagesPortrait = ["portrait1.jpg", "portrait2.jpg", "portrait3.jpg", "portrait4.jpg"];
-    const imagesLandscape = ["landscape1.jpg", "landscape2.jpg", "landscape3.jpg"];
+    function generateImageList(prefix, count) {
+      return Array.from({ length: count }, (_, i) => `${prefix}${i + 1}.jpg`);
+    }
+
+    const imagesPortrait = generateImageList("portrait", 10);
+    const imagesLandscape = generateImageList("landscape", 10);
 
     const isPortraitMode = () => window.innerWidth >= 1000;
 
@@ -147,34 +151,52 @@
     let currentIndex = 0;
     let images = [];
 
+    function imageExists(src, callback) {
+      const img = new Image();
+      img.onload = () => callback(true);
+      img.onerror = () => callback(false);
+      img.src = src;
+    }
+
     function renderCarousel() {
       images = isPortraitMode() ? imagesPortrait : imagesLandscape;
       track.innerHTML = "";
       dots.innerHTML = "";
 
+      let validCount = 0;
+      let rendered = 0;
+
       images.forEach((src, i) => {
-        const div = document.createElement("div");
-        div.className = "carousel-image";
-        const img = document.createElement("img");
-        img.src = src;
-        img.onclick = () => {
-          popup.style.display = "flex";
-          popupImg.src = src;
-        };
-        div.appendChild(img);
-        track.appendChild(div);
+        imageExists(src, (exists) => {
+          rendered++;
+          if (exists) {
+            const div = document.createElement("div");
+            div.className = "carousel-image";
+            const img = document.createElement("img");
+            img.src = src;
+            img.onclick = () => {
+              popup.style.display = "flex";
+              popupImg.src = src;
+            };
+            div.appendChild(img);
+            track.appendChild(div);
 
-        const dot = document.createElement("div");
-        dot.className = "dot";
-        if (i === 0) dot.classList.add("active");
-        dots.appendChild(dot);
+            const dot = document.createElement("div");
+            dot.className = "dot";
+            if (validCount === 0) dot.classList.add("active");
+            dots.appendChild(dot);
+            validCount++;
+          }
+
+          if (rendered === images.length) {
+            updateCarousel();
+          }
+        });
       });
-
-      updateCarousel();
     }
 
     function updateCarousel() {
-      const width = document.querySelector(".carousel-image").offsetWidth;
+      const width = document.querySelector(".carousel-image")?.offsetWidth || 0;
       track.style.transform = `translateX(-${width * currentIndex}px)`;
 
       dots.childNodes.forEach((dot, i) => {
@@ -182,7 +204,7 @@
       });
 
       document.getElementById("prevBtn").style.display = currentIndex === 0 ? "none" : "block";
-      document.getElementById("nextBtn").style.display = currentIndex === images.length - 1 ? "none" : "block";
+      document.getElementById("nextBtn").style.display = currentIndex >= dots.childNodes.length - 1 ? "none" : "block";
     }
 
     document.getElementById("prevBtn").onclick = () => {
@@ -193,7 +215,7 @@
     };
 
     document.getElementById("nextBtn").onclick = () => {
-      if (currentIndex < images.length - 1) {
+      if (currentIndex < dots.childNodes.length - 1) {
         currentIndex++;
         updateCarousel();
       }
@@ -212,7 +234,7 @@
       const diff = e.changedTouches[0].clientX - startX;
       if (diff > 50 && currentIndex > 0) {
         currentIndex--;
-      } else if (diff < -50 && currentIndex < images.length - 1) {
+      } else if (diff < -50 && currentIndex < dots.childNodes.length - 1) {
         currentIndex++;
       }
       updateCarousel();
