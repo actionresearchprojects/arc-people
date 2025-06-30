@@ -39,7 +39,7 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      margin-right: 6px;
+      margin-right: 4px;
     }
     .carousel-image img {
       max-height: 100%;
@@ -55,10 +55,10 @@
       position: absolute;
       bottom: 0;
       right: 0;
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(to right, #fae64d, #fff176);
-      border-bottom-right-radius: 12px;
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(to bottom, #fae64d, #f5c63d);
+      border-bottom-right-radius: 14px;
       clip-path: polygon(100% 0, 0% 100%, 100% 100%);
       cursor: pointer;
       z-index: 20;
@@ -70,8 +70,8 @@
       color: black;
     }
     .corner-tag span {
-      margin-bottom: 4px;
-      margin-right: 4px;
+      margin-bottom: 2px;
+      margin-right: 2px;
       font-size: 24px;
       font-family: Ubuntu, sans-serif;
     }
@@ -101,9 +101,9 @@
       left: 50%;
       transform: translateX(-50%);
       padding: 8px 16px;
-      background: rgba(0, 0, 0, 0.25);
+      background: rgba(0, 0, 0, 0.15);
       border-radius: 20px;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(6px);
       z-index: 1001;
       display: flex;
       justify-content: center;
@@ -118,11 +118,11 @@
       height: 14px;
       background: rgba(255, 255, 255, 0.9);
       border-radius: 50%;
-      box-shadow: 0 0 2px #000, 0 0 12px rgba(255,255,255,0.8);
+      box-shadow: none;
     }
     .dot.active {
       background: #ffffff;
-      box-shadow: 0 0 8px #ffffff, 0 0 14px #ffffff;
+      box-shadow: none;
     }
     .popup {
       position: fixed;
