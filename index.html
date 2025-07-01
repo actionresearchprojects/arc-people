@@ -113,6 +113,7 @@
       object-fit: contain;
       border: 0.375rem solid #000;
       border-radius: var(--border-radius);
+      cursor: pointer;
     }
   </style>
 </head>
@@ -217,7 +218,7 @@
     };
 
     popup.onclick = e => {
-      if (e.target === popup || e.target === popupImg) {
+      if (e.target === popupImg) {
         if (isWide && window.currentPopupLink && window.currentPopupLink !== '#') {
           const a = document.createElement('a');
           a.href = window.currentPopupLink;
@@ -227,6 +228,8 @@
           a.click();
           document.body.removeChild(a);
         }
+        popup.classList.remove('visible');
+      } else if (e.target === popup) {
         popup.classList.remove('visible');
       }
     };
