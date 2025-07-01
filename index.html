@@ -112,7 +112,25 @@
       object-fit: contain;
       border: clamp(2px, 0.375rem, 6px) solid #000;
       border-radius: var(--border-radius);
+    }
+    .info-button {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 255, 255, 0.9);
+      color: #000;
+      font-weight: bold;
+      font-size: 1.4rem;
       cursor: pointer;
+      z-index: 101;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0.25rem rgba(0, 0, 0, 0.4);
     }
   </style>
 </head>
@@ -124,6 +142,7 @@
   </div>
   <div class="popup" id="popup" role="dialog" aria-modal="true">
     <img id="popupImg" src="" alt="Expanded view" />
+    <button id="infoBtn" class="info-button" aria-label="Open external link">i</button>
   </div>
   <script>
     window.currentPopupLink = '#';
@@ -148,6 +167,7 @@
     let links = [];
     let currentIndex = 0;
     let isWide = window.innerWidth >= 800;
+    let imagesLandscapeGlobal = [];
 
     function createImageSlide(src, label, linkUrl, idx) {
       const container = document.createElement('div');
@@ -160,7 +180,7 @@
 
       if (isWide) {
         container.onclick = () => {
-          document.getElementById('popupImg').src = imagesLandscape[idx];
+          document.getElementById('popupImg').src = imagesLandscapeGlobal[idx];
           popup.classList.add('visible');
           window.currentPopupLink = linkUrl || '#';
         };
@@ -176,7 +196,7 @@
       const count = links.length;
       const imagesPortrait = generateImages('portrait', count);
       const imagesLandscape = generateImages('landscape', count);
-      imagesLandscapeGlobal = imagesLandscape; // make accessible inside createImageSlide
+      imagesLandscapeGlobal = imagesLandscape;
 
       const sources = isWide ? imagesPortrait : imagesLandscape;
 
@@ -199,8 +219,7 @@
     const track   = document.getElementById('track');
     const popup   = document.getElementById('popup');
     const popupImg = document.getElementById('popupImg');
-
-    let imagesLandscapeGlobal = [];
+    const infoBtn = document.getElementById('infoBtn');
 
     function updateControls(count) {
       prevBtn.style.display = currentIndex === 0 ? 'none' : 'block';
@@ -222,19 +241,21 @@
     };
 
     popup.onclick = e => {
-      if (e.target === popupImg) {
-        if (isWide && window.currentPopupLink && window.currentPopupLink !== '#') {
-          const a = document.createElement('a');
-          a.href = window.currentPopupLink;
-          a.target = '_blank';
-          a.rel = 'noopener noreferrer';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-        }
+      if (e.target === popup) {
         popup.classList.remove('visible');
-      } else if (e.target === popup) {
-        popup.classList.remove('visible');
+      }
+    };
+
+    infoBtn.onclick = e => {
+      e.stopPropagation();
+      if (isWide && window.currentPopupLink && window.currentPopupLink !== '#') {
+        const a = document.createElement('a');
+        a.href = window.currentPopupLink;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
       }
     };
 
