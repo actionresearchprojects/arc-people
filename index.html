@@ -145,8 +145,6 @@
       return Array.from({ length: count }, (_, i) => `biogs/${prefix}/${prefix}${i+1}.webp`);
     }
 
-    const imagesPortrait = generateImages('portrait', 10);
-    const imagesLandscape = generateImages('landscape', 10);
     let links = [];
     let currentIndex = 0;
     let isWide = window.innerWidth >= 800;
@@ -175,6 +173,11 @@
     async function renderCarousel() {
       links = await fetchLinks();
       isWide = window.innerWidth >= 800;
+      const count = links.length;
+      const imagesPortrait = generateImages('portrait', count);
+      const imagesLandscape = generateImages('landscape', count);
+      imagesLandscapeGlobal = imagesLandscape; // make accessible inside createImageSlide
+
       const sources = isWide ? imagesPortrait : imagesLandscape;
 
       const loaded = (await Promise.all(sources.map((src,i) => new Promise(r=>{
@@ -183,7 +186,7 @@
 
       track.innerHTML = '';
       loaded.forEach(({src,i})=>{
-        const entry = links.find(l => l.index === i+1) || {};
+        const entry = links[i] || {};
         track.append(createImageSlide(src, entry.label, entry.url || '#', i));
       });
 
@@ -196,6 +199,8 @@
     const track   = document.getElementById('track');
     const popup   = document.getElementById('popup');
     const popupImg = document.getElementById('popupImg');
+
+    let imagesLandscapeGlobal = [];
 
     function updateControls(count) {
       prevBtn.style.display = currentIndex === 0 ? 'none' : 'block';
