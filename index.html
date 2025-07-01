@@ -74,10 +74,10 @@
     }
     .info-button-inline {
       position: absolute;
-      top: 0.75rem;
-      right: 0.75rem;
+      top: clamp(0.5rem, 1vw, 1rem);
+      right: clamp(0.5rem, 1vw, 1rem);
+      aspect-ratio: 1 / 1;
       width: clamp(2rem, 3vw, 2.75rem);
-      height: clamp(2rem, 3vw, 2.75rem);
       border-radius: 50%;
       border: clamp(2px, 0.3vw, 4px) solid #000;
       background: #fff;
@@ -85,11 +85,12 @@
       font-family: Ubuntu, sans-serif;
       font-weight: 400;
       font-size: clamp(1.25rem, 2vw, 1.5rem);
-      cursor: pointer;
-      z-index: 10;
+      line-height: 1;
       display: flex;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
+      z-index: 10;
     }
     .arrow {
       position: absolute;
@@ -140,8 +141,8 @@
       position: absolute;
       top: 1.5rem;
       right: 1.5rem;
+      aspect-ratio: 1 / 1;
       width: clamp(2rem, 3vw, 2.75rem);
-      height: clamp(2rem, 3vw, 2.75rem);
       border-radius: 50%;
       border: clamp(2px, 0.3vw, 4px) solid #000;
       background: #fff;
@@ -149,11 +150,12 @@
       font-family: Ubuntu, sans-serif;
       font-weight: 400;
       font-size: clamp(1.25rem, 2vw, 1.5rem);
-      cursor: pointer;
-      z-index: 10;
+      line-height: 1;
       display: flex;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
+      z-index: 10;
     }
   </style>
 </head>
@@ -251,10 +253,7 @@
 
       track.innerHTML = '';
 
-      if (loaded.length === 0) {
-        updateControls(0);
-        return;
-      }
+      if (loaded.length === 0) return;
 
       loaded.forEach(({ src, i }) => {
         const entry = links[i] || {};
@@ -262,7 +261,6 @@
       });
 
       currentIndex = 0;
-      updateControls(loaded.length);
       scrollToIndex();
     }
 
@@ -273,25 +271,10 @@
     const popupImg = document.getElementById('popupImg');
     const infoBtn = document.getElementById('infoBtn');
 
-    function updateControls(count) {
-      if (count <= 1) {
-        prevBtn.style.display = 'none';
-        nextBtn.style.display = 'none';
-        return;
-      }
-
-      const canScrollLeft = track.scrollLeft > 0;
-      const canScrollRight = track.scrollLeft + track.clientWidth < track.scrollWidth - 1;
-
-      prevBtn.style.display = canScrollLeft ? 'block' : 'none';
-      nextBtn.style.display = canScrollRight ? 'block' : 'none';
-    }
-
     function scrollToIndex() {
       const slide = track.children[currentIndex];
       if (!slide) return;
       track.scrollTo({ left: slide.offsetLeft, behavior: 'smooth' });
-      setTimeout(() => updateControls(track.children.length), 100);
     }
 
     prevBtn.onclick = () => {
