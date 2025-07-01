@@ -210,8 +210,18 @@
 
       if (isWide) {
         container.onclick = () => {
-          document.getElementById('popupImg').src = imagesLandscapeGlobal[idx];
-          popup.classList.add('visible');
+          const popupImg = document.getElementById('popupImg');
+          const newSrc = imagesLandscapeGlobal[idx];
+          if (popupImg.src !== newSrc) {
+            const preload = new Image();
+            preload.onload = () => {
+              popupImg.src = newSrc;
+              popup.classList.add('visible');
+            };
+            preload.src = newSrc;
+          } else {
+            popup.classList.add('visible');
+          }
           window.currentPopupLink = linkUrl || '#';
         };
       } else {
