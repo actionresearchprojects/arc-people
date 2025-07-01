@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Preload for quicker visual start -->
+  <link rel="preload" href="biogs/portrait/portrait1.webp" as="image">
+  <link rel="preload" href="biogs/portrait/portrait2.webp" as="image">
+  <link rel="preload" href="biogs/landscape/landscape1.webp" as="image">
+  <link rel="preload" href="biogs/landscape/landscape2.webp" as="image">
+
   <style>
     :root {
       --border-radius: 2rem;
@@ -136,7 +142,7 @@
     }
 
     function generateImages(prefix, count) {
-      return Array.from({ length: count }, (_, i) => `biogs/${prefix}/${prefix}${i+1}.png`);
+      return Array.from({ length: count }, (_, i) => `biogs/${prefix}/${prefix}${i+1}.webp`);
     }
 
     const imagesPortrait = generateImages('portrait', 10);
@@ -153,7 +159,6 @@
       const img = document.createElement('img');
       img.src = src;
       img.alt = label || `Image ${idx+1}`;
-      img.loading = 'lazy';
 
       if (isWide) {
         container.onclick = () => {
