@@ -74,8 +74,8 @@
     }
     .info-button-inline {
       position: absolute;
-      top: clamp(0.5rem, 1vw, 1rem);
-      right: clamp(0.5rem, 1vw, 1rem);
+      top: 1.5rem;
+      right: 1.5rem;
       aspect-ratio: 1 / 1;
       width: clamp(2rem, 3vw, 2.75rem);
       border-radius: 50%;
@@ -262,6 +262,7 @@
 
       currentIndex = 0;
       scrollToIndex();
+      updateControls();
     }
 
     const prevBtn = document.getElementById('prevBtn');
@@ -277,10 +278,18 @@
       track.scrollTo({ left: slide.offsetLeft, behavior: 'smooth' });
     }
 
+    function updateControls() {
+      const canScrollLeft = track.scrollLeft > 0;
+      const canScrollRight = track.scrollLeft + track.clientWidth < track.scrollWidth - 1;
+      prevBtn.style.display = canScrollLeft ? 'block' : 'none';
+      nextBtn.style.display = canScrollRight ? 'block' : 'none';
+    }
+
     prevBtn.onclick = () => {
       if (currentIndex > 0) {
         currentIndex--;
         scrollToIndex();
+        updateControls();
       }
     };
 
@@ -288,8 +297,15 @@
       if (currentIndex < track.children.length - 1) {
         currentIndex++;
         scrollToIndex();
+        updateControls();
       }
     };
+
+    track.addEventListener('scroll', updateControls);
+    window.addEventListener('resize', () => {
+      isWide = window.innerWidth >= 800;
+      renderCarousel();
+    });
 
     popup.onclick = e => {
       if (e.target === popup) popup.classList.remove('visible');
@@ -308,7 +324,6 @@
       }
     };
 
-    window.addEventListener('resize', renderCarousel);
     document.addEventListener('DOMContentLoaded', renderCarousel);
   </script>
 </body>
