@@ -213,23 +213,24 @@
       const hasValidLink = linkUrl && linkUrl !== '#' && linkUrl.toLowerCase() !== 'n/a';
 
       if (isWide) {
-        if (hasValidLink) {
-          container.onclick = () => {
-            const popupImg = document.getElementById('popupImg');
-            const newSrc = imagesLandscapeGlobal[idx];
-            if (popupImg.src !== newSrc) {
-              const preload = new Image();
-              preload.onload = () => {
-                popupImg.src = newSrc;
-                popup.classList.add('visible');
-              };
-              preload.src = newSrc;
-            } else {
+        container.onclick = () => {
+          const popupImg = document.getElementById('popupImg');
+          const newSrc = imagesLandscapeGlobal[idx];
+          if (popupImg.src !== newSrc) {
+            const preload = new Image();
+            preload.onload = () => {
+              popupImg.src = newSrc;
               popup.classList.add('visible');
-            }
-            window.currentPopupLink = linkUrl;
-          };
-        }
+            };
+            preload.src = newSrc;
+          } else {
+            popup.classList.add('visible');
+          }
+
+          window.currentPopupLink = hasValidLink ? linkUrl : '#';
+          const infoBtn = document.getElementById('infoBtn');
+          infoBtn.style.display = hasValidLink ? 'flex' : 'none';
+        };
       } else {
         if (hasValidLink) {
           const infoButton = document.createElement('button');
@@ -330,7 +331,7 @@
 
     infoBtn.onclick = e => {
       e.stopPropagation();
-      if (isWide && window.currentPopupLink && window.currentPopupLink !== '#' && window.currentPopupLink.toLowerCase() !== 'n/a') {
+      if (window.currentPopupLink && window.currentPopupLink !== '#' && window.currentPopupLink.toLowerCase() !== 'n/a') {
         const a = document.createElement('a');
         a.href = window.currentPopupLink;
         a.target = '_blank';
