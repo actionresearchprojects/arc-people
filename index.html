@@ -279,8 +279,10 @@
       });
 
       currentIndex = 0;
-      scrollToIndex();
-      updateControls();
+      requestAnimationFrame(() => {
+        scrollToIndex();
+        updateControls();
+      });
     }
 
     const prevBtn = document.getElementById('prevBtn');
@@ -293,14 +295,13 @@
     function scrollToIndex() {
       const slide = track.children[currentIndex];
       if (!slide) return;
-      track.scrollTo({ left: slide.offsetLeft, behavior: 'smooth' });
+      const scrollAmount = slide.offsetLeft - track.offsetLeft;
+      track.scrollTo({ left: scrollAmount, behavior: 'smooth' });
     }
 
     function updateControls() {
-      const canScrollLeft = track.scrollLeft > 0;
-      const canScrollRight = track.scrollLeft + track.clientWidth < track.scrollWidth - 1;
-      prevBtn.style.display = canScrollLeft ? 'block' : 'none';
-      nextBtn.style.display = canScrollRight ? 'block' : 'none';
+      prevBtn.style.display = currentIndex > 0 ? 'block' : 'none';
+      nextBtn.style.display = currentIndex < track.children.length - 1 ? 'block' : 'none';
     }
 
     prevBtn.onclick = () => {
@@ -319,7 +320,6 @@
       }
     };
 
-    track.addEventListener('scroll', updateControls);
     window.addEventListener('resize', () => {
       isWide = window.innerWidth >= 800;
       renderCarousel();
