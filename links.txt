@@ -1,5 +1,8 @@
 1, Andrew Simmonds, https://www.linkedin.com/in/andrew-simmonds-69799a1b/ 
 2, Huda Elsherif, https://www.linkedin.com/in/hudaelsherif123/
 3, Archie Worthington, https://www.linkedin.com/in/archie-worthington/
-4, Dauda Suleiman, N/A
-5, N/A, https://www.google.com
+4, Kamran Fazil, https://x.com/climatekam?lang=en
+5, Ben Roberts, https://www.linkedin.com/in/dr-ben-roberts/?originalSubdomain=uk
+6, Toby Cambray, https://www.linkedin.com/in/toby-cambray-19137bb3/
+7, Suleiman Dauda, N/A
+8, Marwa Mohabe, https://www.linkedin.com/in/marwa-mohabe-5455a021a
