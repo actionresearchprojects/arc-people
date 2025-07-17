@@ -179,6 +179,12 @@
   <script>
     window.currentPopupLink = '#';
 
+    let currentIndex = 0;
+    let currentIndexDirection = 1;
+    let links = [];
+    let isWide = window.innerWidth >= 800;
+    let imagesLandscapeGlobal = [];
+
     async function fetchLinks() {
       try {
         const res = await fetch('links.txt');
@@ -193,13 +199,30 @@
     }
 
     function generateImages(prefix, count) {
-      return Array.from({ length: count }, (_, i) => `biogs/${prefix}/${prefix}${i+1}.webp`);
+      return Array.from({ length: count }, (_, i) => `biogs/${prefix}/${prefix}${i + 1}.webp`);
     }
 
-    let links = [];
-    let currentIndex = 0;
-    let isWide = window.innerWidth >= 800;
-    let imagesLandscapeGlobal = [];
+    function getVisibleCount() {
+      const slide = track.children[0];
+      if (!slide) return 1;
+      const gap = parseFloat(getComputedStyle(track).gap) || 0;
+      return Math.max(1, Math.floor(track.clientWidth / (slide.offsetWidth + gap)));
+    }
+
+    function scrollByPage() {
+      const slide = track.children[0];
+      if (!slide) return;
+      const gap = parseFloat(getComputedStyle(track).gap) || 0;
+      const slideWidth = slide.offsetWidth + gap;
+      const visibleCount = getVisibleCount();
+      const scrollAmount = slideWidth * visibleCount;
+      track.scrollBy({ left: currentIndexDirection * scrollAmount, behavior: 'smooth' });
+    }
+
+    function updateControls() {
+      prevBtn.style.display = currentIndex > 0 ? 'block' : 'none';
+      nextBtn.style.display = currentIndex < track.children.length - 1 ? 'block' : 'none';
+    }
 
     function createImageSlide(src, label, linkUrl, idx) {
       const container = document.createElement('div');
@@ -208,7 +231,7 @@
 
       const img = document.createElement('img');
       img.src = src;
-      img.alt = label || `Image ${idx+1}`;
+      img.alt = label || `Image ${idx + 1}`;
 
       const hasValidLink = linkUrl && linkUrl !== '#' && linkUrl.toLowerCase() !== 'n/a';
 
@@ -280,36 +303,14 @@
 
       currentIndex = 0;
       requestAnimationFrame(() => {
-        scrollToIndex();
         updateControls();
       });
     }
 
-    function getVisibleCount() {
-      const slide = track.children[0];
-      if (!slide) return 1;
-      const gap = parseFloat(getComputedStyle(track).gap) || 0;
-      return Math.max(1, Math.floor(track.clientWidth / (slide.offsetWidth + gap)));
-    }
-
-    function scrollToIndex() {
-      const slide = track.children[0];
-      if (!slide) return;
-      const gap = parseFloat(getComputedStyle(track).gap) || 0;
-      const slideWidth = slide.offsetWidth + gap;
-      const scrollLeft = currentIndex * slideWidth;
-      track.scrollTo({ left: scrollLeft, behavior: 'smooth' });
-    }
-
-    function updateControls() {
-      prevBtn.style.display = currentIndex > 0 ? 'block' : 'none';
-      nextBtn.style.display = currentIndex < track.children.length - 1 ? 'block' : 'none';
-    }
-
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
-    const track   = document.getElementById('track');
-    const popup   = document.getElementById('popup');
+    const track = document.getElementById('track');
+    const popup = document.getElementById('popup');
     const popupImg = document.getElementById('popupImg');
     const infoBtn = document.getElementById('infoBtn');
 
@@ -317,7 +318,8 @@
       const visibleCount = getVisibleCount();
       if (currentIndex > 0) {
         currentIndex = Math.max(0, currentIndex - visibleCount);
-        scrollToIndex();
+        currentIndexDirection = -1;
+        scrollByPage();
         updateControls();
       }
     };
@@ -326,7 +328,8 @@
       const visibleCount = getVisibleCount();
       if (currentIndex < track.children.length - 1) {
         currentIndex = Math.min(track.children.length - 1, currentIndex + visibleCount);
-        scrollToIndex();
+        currentIndexDirection = 1;
+        scrollByPage();
         updateControls();
       }
     };
