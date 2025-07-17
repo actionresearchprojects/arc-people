@@ -285,6 +285,13 @@
       });
     }
 
+    function getVisibleCount() {
+      const slide = track.children[0];
+      if (!slide) return 1;
+      const gap = parseFloat(getComputedStyle(track).gap) || 0;
+      return Math.max(1, Math.floor(track.clientWidth / (slide.offsetWidth + gap)));
+    }
+
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const track   = document.getElementById('track');
@@ -305,16 +312,18 @@
     }
 
     prevBtn.onclick = () => {
+      const visibleCount = getVisibleCount();
       if (currentIndex > 0) {
-        currentIndex--;
+        currentIndex = Math.max(0, currentIndex - visibleCount);
         scrollToIndex();
         updateControls();
       }
     };
 
     nextBtn.onclick = () => {
+      const visibleCount = getVisibleCount();
       if (currentIndex < track.children.length - 1) {
-        currentIndex++;
+        currentIndex = Math.min(track.children.length - 1, currentIndex + visibleCount);
         scrollToIndex();
         updateControls();
       }
