@@ -1,243 +1,332 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Ubuntu&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preload" href="biogs/portrait/portrait1.webp" as="image">
+  <link rel="preload" href="biogs/landscape/landscape1.webp" as="image">
   <style>
     :root {
-      --row-gap: clamp(4px, 0.75vw, 12px);
+      --border-radius: clamp(1rem, 2vw, 2.5rem);
+      --arrow-size: clamp(3rem, 8vw, 5rem);
+      --vertical-gap: 0vh;
+      --horizontal-gap: 0.375rem;
     }
-    * {
-      box-sizing: border-box;
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
       margin: 0;
       padding: 0;
-    }
-
-    body {
-      font-family: 'Ubuntu', sans-serif;
-      background: #fff;
+      background: transparent;
+      font-family: Ubuntu, sans-serif;
       overflow: hidden;
-      height: 100vh;
-    }
-
-    .container {
-      position: relative;
-      height: 100vh;
-      width: 100vw;
-    }
-
-    #imageContainer {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      height: 100vh;
+      height: 100%;
       width: 100%;
-      box-sizing: border-box;
-      gap: var(--row-gap);
     }
-
-    .image-row {
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-start;
-      gap: var(--row-gap);
-      flex: 1 1 0;
-      overflow: hidden;
-    }
-
-    .image-box {
+    .carousel-container {
       position: relative;
-      overflow: hidden;
-      flex-shrink: 0;
+      width: 100%;
+      height: 100%;
+      padding-top: var(--vertical-gap);
+      padding-bottom: var(--vertical-gap);
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #ddd;
+    }
+    .carousel-track {
+      display: flex;
+      align-items: center;
+      gap: var(--horizontal-gap);
+      scroll-behavior: smooth;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      width: 100%;
+      height: calc(100% - (var(--vertical-gap) * 2));
+    }
+    .carousel-track::-webkit-scrollbar { display: none; }
+    .carousel-image {
+      position: relative;
+      flex: 0 0 auto;
+      border-radius: var(--border-radius);
+      border: clamp(2px, 0.208vw, 4px) solid #000;
+      overflow: hidden;
+      background: #f0f0f0;
       height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
       cursor: pointer;
+      font-size: 16px;
     }
-
-    .image-box img {
-      height: 100%;
-      width: auto;
-      object-fit: contain;
-      opacity: 0.90;
-      transition: opacity 0.3s ease;
-    }
-
-    .image-box:hover img {
-      opacity: 0.75;
-    }
-
-    .image-title {
+    .carousel-image:hover::after {
+      content: "";
       position: absolute;
-      bottom: 10px;
-      left: 10px;
-      background: rgba(255, 255, 255, 0.6);
-      padding: 4px 8px;
-      font-size: 1rem;
+      inset: 0;
+      background: rgba(255,255,255,0.05);
+      border-radius: var(--border-radius);
+      z-index: 1;
+      pointer-events: none;
     }
-
+    .carousel-image img {
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
     .arrow {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      font-size: 2rem;
+      background: none;
+      border: none;
       cursor: pointer;
-      background: rgba(255, 255, 255, 0.5);
-      padding: 4px;
+      padding: 0;
+      z-index: 10;
+      transition: transform 0.1s ease;
+    }
+    .arrow:active { transform: translateY(-50%) scale(0.9); }
+    .arrow.left { left: var(--horizontal-gap); }
+    .arrow.right { right: var(--horizontal-gap); }
+    .arrow img { width: var(--arrow-size); height: auto; }
+    .popup {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 100;
+    }
+    .popup.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .popup-inner {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .popup-inner img {
+      max-width: 98vw;
+      max-height: 98vh;
+      object-fit: contain;
+      border: clamp(2px, 0.375rem, 6px) solid #000;
+      border-radius: var(--border-radius);
+      display: block;
+    }
+    .info-button {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      aspect-ratio: 1 / 1;
+      width: clamp(2rem, 3vw, 2.75rem);
+      border-radius: 50%;
+      border: clamp(2px, 0.3vw, 4px) solid #000;
+      background: #fff;
+      color: #000;
+      font-family: Ubuntu, sans-serif;
+      font-weight: 400;
+      font-size: clamp(1.25rem, 2vw, 1.5rem);
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
       z-index: 10;
     }
-
-    .arrow-left {
-      left: 10px;
-    }
-
-    .arrow-right {
-      right: 10px;
-    }
-
-    @media (max-width: 763px) {
-      #imageContainer {
-        flex-direction: row;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        height: 100vh;
+    @media (max-width: 799px) {
+      .info-button-inline {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 18px;
+        aspect-ratio: 1 / 1;
+        border-radius: 50%;
+        border: 1.5px solid #000;
+        background: #fff;
+        color: #000;
+        font-family: Ubuntu, sans-serif;
+        font-weight: 400;
+        font-size: 10px;
+        line-height: 1;
         padding: 0;
-        gap: 0;
+        display: flex;
         align-items: center;
-      }
-
-      .image-box {
-        aspect-ratio: 3 / 2;
-        height: 90vh;
-        margin-right: var(--row-gap);
-        flex: 0 0 auto;
-      }
-
-      .image-box img {
-        height: 100%;
-        width: 100%;
-        object-fit: cover;
-      }
-
-      .arrow {
-        display: none;
+        justify-content: center;
+        transform: translateY(1px);
+        cursor: pointer;
+        z-index: 10;
       }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div id="imageContainer"></div>
-    <div class="arrow arrow-left" id="arrowLeft">&#8249;</div>
-    <div class="arrow arrow-right" id="arrowRight">&#8250;</div>
+  <div class="carousel-container">
+    <button class="arrow left" id="prevBtn" aria-label="Previous image"><img src="arrows/backward-arrow.png" alt="Previous" /></button>
+    <div class="carousel-track" id="track" tabindex="0" role="list"></div>
+    <button class="arrow right" id="nextBtn" aria-label="Next image"><img src="arrows/forward-arrow.png" alt="Next" /></button>
   </div>
-
+  <div class="popup" id="popup" role="dialog" aria-modal="true">
+    <div class="popup-inner">
+      <img id="popupImg" src="" alt="Expanded view" />
+      <button id="infoBtn" class="info-button" aria-label="Open external link">i</button>
+    </div>
+  </div>
   <script>
-    async function loadTitlesAndImages() {
-      const res = await fetch('metadata.txt');
-      const text = await res.text();
-      const lines = text.trim().split('\n').map(line => {
-        const [title, link] = line.split('|~|');
-        return {
-          title: title.trim(),
-          link: link.trim()
-        };
-      });
+    window.currentPopupLink = '#';
+    let links = [];
+    let isWide = window.innerWidth >= 800;
+    let imagesLandscapeGlobal = [];
 
-      const container = document.getElementById('imageContainer');
-      const isMobile = window.innerWidth < 764;
-
-      if (isMobile) {
-        lines.forEach((item, idx) => {
-          const imageBox = createImageBox(idx + 1, item.title, item.link);
-          container.appendChild(imageBox);
+    async function fetchLinks() {
+      try {
+        const res = await fetch('links.txt');
+        if (!res.ok) return [];
+        return (await res.text()).trim().split('\n').map(line => {
+          const [index, label, url] = line.split(',').map(p => p.trim());
+          return { index: +index, label, url };
         });
-      } else {
-        const topRow = document.createElement('div');
-        topRow.className = 'image-row';
-
-        const bottomRow = document.createElement('div');
-        bottomRow.className = 'image-row';
-
-        container.appendChild(topRow);
-        container.appendChild(bottomRow);
-
-        const metadata = await Promise.all(
-          lines.map((item, idx) =>
-            loadImage(`images/${idx + 1}.jpg`).then(img => ({
-              idx,
-              title: item.title,
-              link: item.link,
-              aspectRatio: img.width / img.height
-            }))
-          )
-        );
-
-        const top = [], bottom = [];
-        let topTotal = 0, bottomTotal = 0;
-
-        const layoutPlan = metadata.map(data => {
-          const widthGuess = 48 * data.aspectRatio;
-          if (topTotal <= bottomTotal) {
-            topTotal += widthGuess;
-            top.push(data);
-            return { ...data, row: 'top' };
-          } else {
-            bottomTotal += widthGuess;
-            bottom.push(data);
-            return { ...data, row: 'bottom' };
-          }
-        });
-
-        layoutPlan.forEach(data => {
-          const imageBox = createImageBox(data.idx + 1, data.title, data.link);
-          if (data.row === 'top') topRow.appendChild(imageBox);
-          else bottomRow.appendChild(imageBox);
-        });
+      } catch {
+        return [];
       }
     }
 
-    function createImageBox(index, title, link) {
-      const imageBox = document.createElement('div');
-      imageBox.className = 'image-box';
-      imageBox.onclick = () => {
-        window.top.location.href = link;
-      };
+    function generateImages(prefix, count) {
+      return Array.from({ length: count }, (_, i) => `biogs/${prefix}/${prefix}${i + 1}.webp`);
+    }
+
+    function getScrollAmount() {
+      const slide = track.children[0];
+      if (!slide) return 100;
+      const gap = parseFloat(getComputedStyle(track).gap) || 0;
+      const visibleCount = Math.max(1, Math.floor(track.clientWidth / (slide.offsetWidth + gap)));
+      return visibleCount * (slide.offsetWidth + gap);
+    }
+
+    function updateControls() {
+      const maxScroll = track.scrollWidth - track.clientWidth - 1;
+      prevBtn.style.display = track.scrollLeft > 0 ? 'block' : 'none';
+      nextBtn.style.display = track.scrollLeft < maxScroll ? 'block' : 'none';
+    }
+
+    function createImageSlide(src, label, linkUrl, idx) {
+      const container = document.createElement('div');
+      container.className = 'carousel-image';
+      container.setAttribute('role', 'listitem');
 
       const img = document.createElement('img');
-      img.src = `images/${index}.jpg`;
-      img.alt = title;
+      img.src = src;
+      img.alt = label || `Image ${idx + 1}`;
 
-      const caption = document.createElement('div');
-      caption.className = 'image-title';
-      caption.innerText = title;
+      const hasValidLink = linkUrl && linkUrl !== '#' && linkUrl.toLowerCase() !== 'n/a';
 
-      imageBox.appendChild(img);
-      imageBox.appendChild(caption);
+      if (isWide) {
+        container.onclick = () => {
+          const popupImg = document.getElementById('popupImg');
+          const newSrc = imagesLandscapeGlobal[idx];
+          if (popupImg.src !== newSrc) {
+            const preload = new Image();
+            preload.onload = () => {
+              popupImg.src = newSrc;
+              popup.classList.add('visible');
+            };
+            preload.src = newSrc;
+          } else {
+            popup.classList.add('visible');
+          }
 
-      return imageBox;
+          window.currentPopupLink = hasValidLink ? linkUrl : '#';
+          const infoBtn = document.getElementById('infoBtn');
+          infoBtn.style.display = hasValidLink ? 'flex' : 'none';
+        };
+      } else if (hasValidLink) {
+        const infoButton = document.createElement('button');
+        infoButton.className = 'info-button-inline';
+        infoButton.textContent = 'i';
+        infoButton.setAttribute('aria-label', 'Open external link');
+        infoButton.onclick = e => {
+          e.stopPropagation();
+          const a = document.createElement('a');
+          a.href = linkUrl;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        };
+        container.appendChild(infoButton);
+      }
+
+      container.append(img);
+      return container;
     }
 
-    function loadImage(src) {
-      return new Promise(resolve => {
+    async function renderCarousel() {
+      links = await fetchLinks();
+      isWide = window.innerWidth >= 800;
+      const count = links.length;
+      const imagesPortrait = generateImages('portrait', count);
+      const imagesLandscape = generateImages('landscape', count);
+      imagesLandscapeGlobal = imagesLandscape;
+      const sources = isWide ? imagesPortrait : imagesLandscape;
+
+      const loaded = (await Promise.all(sources.map((src, i) => new Promise(resolve => {
         const img = new Image();
-        img.onload = () => resolve(img);
+        img.onload = () => resolve({ src, i });
+        img.onerror = () => resolve(null);
         img.src = src;
+      })))).filter(Boolean);
+
+      track.innerHTML = '';
+      if (loaded.length === 0) return;
+      loaded.forEach(({ src, i }) => {
+        const entry = links[i] || {};
+        track.append(createImageSlide(src, entry.label, entry.url || '#', i));
       });
+
+      requestAnimationFrame(updateControls);
     }
 
-    loadTitlesAndImages();
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const track = document.getElementById('track');
+    const popup = document.getElementById('popup');
+    const popupImg = document.getElementById('popupImg');
+    const infoBtn = document.getElementById('infoBtn');
 
-    document.getElementById('arrowLeft').onclick = () => {
-      document.getElementById('imageContainer').scrollBy({ left: -300, behavior: 'smooth' });
+    prevBtn.onclick = () => {
+      track.scrollBy({ left: -getScrollAmount(), behavior: 'smooth' });
     };
 
-    document.getElementById('arrowRight').onclick = () => {
-      document.getElementById('imageContainer').scrollBy({ left: 300, behavior: 'smooth' });
+    nextBtn.onclick = () => {
+      track.scrollBy({ left: getScrollAmount(), behavior: 'smooth' });
     };
+
+    track.addEventListener('scroll', updateControls);
+    window.addEventListener('resize', renderCarousel);
+
+    popup.onclick = e => {
+      if (e.target === popup) popup.classList.remove('visible');
+    };
+
+    infoBtn.onclick = e => {
+      e.stopPropagation();
+      if (window.currentPopupLink && window.currentPopupLink !== '#' && window.currentPopupLink.toLowerCase() !== 'n/a') {
+        const a = document.createElement('a');
+        a.href = window.currentPopupLink;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', renderCarousel);
   </script>
 </body>
 </html>
