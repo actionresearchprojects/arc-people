@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="preload" href="biogs/portrait/portrait1.webp" as="image">
+  <!-- Preload the first image in each set to get pixels on screen sooner -->
   <link rel="preload" href="biogs/landscape/landscape1.webp" as="image">
+  <link rel="preload" href="biogs/portrait/portrait1.webp" as="image">
   <style>
     :root {
       --border-radius: clamp(1rem, 2vw, 2.5rem);
@@ -170,21 +171,25 @@
     <div class="carousel-track" id="track" tabindex="0" role="list"></div>
     <button class="arrow right" id="nextBtn" aria-label="Next image"><img src="arrows/forward-arrow.png" alt="Next" /></button>
   </div>
+
   <div class="popup" id="popup" role="dialog" aria-modal="true">
     <div class="popup-inner">
       <img id="popupImg" src="" alt="Expanded view" />
       <button id="infoBtn" class="info-button" aria-label="Open external link">i</button>
     </div>
   </div>
+
   <script>
+    // Global state
     window.currentPopupLink = '#';
     let links = [];
     let isWide = window.innerWidth >= 800;
     let imagesLandscapeGlobal = [];
 
+    // Fetch CSV-style links file: "index,label,url"
     async function fetchLinks() {
       try {
-        const res = await fetch('links.txt');
+        const res = await fetch('links.txt', { cache: 'force-cache' });
         if (!res.ok) return [];
         return (await res.text()).trim().split('\n').map(line => {
           const [index, label, url] = line.split(',').map(p => p.trim());
@@ -213,20 +218,32 @@
       nextBtn.style.display = track.scrollLeft < maxScroll ? 'block' : 'none';
     }
 
+    function openInNewTab(url) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
     function createImageSlide(src, label, linkUrl, idx) {
       const container = document.createElement('div');
       container.className = 'carousel-image';
       container.setAttribute('role', 'listitem');
 
       const img = document.createElement('img');
-      img.src = src;
       img.alt = label || `Image ${idx + 1}`;
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.src = src;
 
       const hasValidLink = linkUrl && linkUrl !== '#' && linkUrl.toLowerCase() !== 'n/a';
 
       if (isWide) {
+        // On wide view, clicking opens popup with landscape image
         container.onclick = () => {
-          const popupImg = document.getElementById('popupImg');
           const newSrc = imagesLandscapeGlobal[idx];
           if (popupImg.src !== newSrc) {
             const preload = new Image();
@@ -238,25 +255,18 @@
           } else {
             popup.classList.add('visible');
           }
-
           window.currentPopupLink = hasValidLink ? linkUrl : '#';
-          const infoBtn = document.getElementById('infoBtn');
           infoBtn.style.display = hasValidLink ? 'flex' : 'none';
         };
       } else if (hasValidLink) {
+        // On narrow view, provide inline info button to open external link
         const infoButton = document.createElement('button');
         infoButton.className = 'info-button-inline';
         infoButton.textContent = 'i';
         infoButton.setAttribute('aria-label', 'Open external link');
         infoButton.onclick = e => {
           e.stopPropagation();
-          const a = document.createElement('a');
-          a.href = linkUrl;
-          a.target = '_blank';
-          a.rel = 'noopener noreferrer';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
+          openInNewTab(linkUrl);
         };
         container.appendChild(infoButton);
       }
@@ -269,21 +279,19 @@
       links = await fetchLinks();
       isWide = window.innerWidth >= 800;
       const count = links.length;
+
       const imagesPortrait = generateImages('portrait', count);
       const imagesLandscape = generateImages('landscape', count);
       imagesLandscapeGlobal = imagesLandscape;
-      const sources = isWide ? imagesPortrait : imagesLandscape;
 
-      const loaded = (await Promise.all(sources.map((src, i) => new Promise(resolve => {
-        const img = new Image();
-        img.onload = () => resolve({ src, i });
-        img.onerror = () => resolve(null);
-        img.src = src;
-      })))).filter(Boolean);
+      // Flip: wide uses LANDSCAPE; narrow uses PORTRAIT
+      const sources = isWide ? imagesLandscape : imagesPortrait;
 
       track.innerHTML = '';
-      if (loaded.length === 0) return;
-      loaded.forEach(({ src, i }) => {
+      if (!count) { updateControls(); return; }
+
+      // Append slides immediately; let images load progressively
+      sources.forEach((src, i) => {
         const entry = links[i] || {};
         track.append(createImageSlide(src, entry.label, entry.url || '#', i));
       });
@@ -291,38 +299,26 @@
       requestAnimationFrame(updateControls);
     }
 
+    // Controls and event wiring
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
-    const track = document.getElementById('track');
-    const popup = document.getElementById('popup');
+    const track   = document.getElementById('track');
+    const popup   = document.getElementById('popup');
     const popupImg = document.getElementById('popupImg');
     const infoBtn = document.getElementById('infoBtn');
 
-    prevBtn.onclick = () => {
-      track.scrollBy({ left: -getScrollAmount(), behavior: 'smooth' });
-    };
-
-    nextBtn.onclick = () => {
-      track.scrollBy({ left: getScrollAmount(), behavior: 'smooth' });
-    };
+    prevBtn.onclick = () => { track.scrollBy({ left: -getScrollAmount(), behavior: 'smooth' }); };
+    nextBtn.onclick = () => { track.scrollBy({ left:  getScrollAmount(), behavior: 'smooth' }); };
 
     track.addEventListener('scroll', updateControls);
     window.addEventListener('resize', renderCarousel);
 
-    popup.onclick = e => {
-      if (e.target === popup) popup.classList.remove('visible');
-    };
+    popup.onclick = e => { if (e.target === popup) popup.classList.remove('visible'); };
 
     infoBtn.onclick = e => {
       e.stopPropagation();
       if (window.currentPopupLink && window.currentPopupLink !== '#' && window.currentPopupLink.toLowerCase() !== 'n/a') {
-        const a = document.createElement('a');
-        a.href = window.currentPopupLink;
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        openInNewTab(window.currentPopupLink);
       }
     };
 
