@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Preload the first image in each set to get pixels on screen sooner -->
-  <link rel="preload" href="biogs/landscape/landscape1.webp" as="image">
+  <!-- Preload first of each set -->
   <link rel="preload" href="biogs/portrait/portrait1.webp" as="image">
+  <link rel="preload" href="biogs/landscape/landscape1.webp" as="image">
   <style>
     :root {
       --border-radius: clamp(1rem, 2vw, 2.5rem);
@@ -186,7 +186,6 @@
     let isWide = window.innerWidth >= 800;
     let imagesLandscapeGlobal = [];
 
-    // Fetch CSV-style links file: "index,label,url"
     async function fetchLinks() {
       try {
         const res = await fetch('links.txt', { cache: 'force-cache' });
@@ -242,7 +241,7 @@
       const hasValidLink = linkUrl && linkUrl !== '#' && linkUrl.toLowerCase() !== 'n/a';
 
       if (isWide) {
-        // On wide view, clicking opens popup with landscape image
+        // Wide: click opens popup with LANDSCAPE image
         container.onclick = () => {
           const newSrc = imagesLandscapeGlobal[idx];
           if (popupImg.src !== newSrc) {
@@ -259,7 +258,7 @@
           infoBtn.style.display = hasValidLink ? 'flex' : 'none';
         };
       } else if (hasValidLink) {
-        // On narrow view, provide inline info button to open external link
+        // Narrow: inline info button opens external link
         const infoButton = document.createElement('button');
         infoButton.className = 'info-button-inline';
         infoButton.textContent = 'i';
@@ -284,13 +283,13 @@
       const imagesLandscape = generateImages('landscape', count);
       imagesLandscapeGlobal = imagesLandscape;
 
-      // Flip: wide uses LANDSCAPE; narrow uses PORTRAIT
-      const sources = isWide ? imagesLandscape : imagesPortrait;
+      // Corrected: wide -> PORTRAIT, narrow -> LANDSCAPE
+      const sources = isWide ? imagesPortrait : imagesLandscape;
 
       track.innerHTML = '';
       if (!count) { updateControls(); return; }
 
-      // Append slides immediately; let images load progressively
+      // Progressive render
       sources.forEach((src, i) => {
         const entry = links[i] || {};
         track.append(createImageSlide(src, entry.label, entry.url || '#', i));
@@ -299,13 +298,13 @@
       requestAnimationFrame(updateControls);
     }
 
-    // Controls and event wiring
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const track   = document.getElementById('track');
-    const popup   = document.getElementById('popup');
+    // Controls and events
+    const prevBtn  = document.getElementById('prevBtn');
+    const nextBtn  = document.getElementById('nextBtn');
+    const track    = document.getElementById('track');
+    const popup    = document.getElementById('popup');
     const popupImg = document.getElementById('popupImg');
-    const infoBtn = document.getElementById('infoBtn');
+    const infoBtn  = document.getElementById('infoBtn');
 
     prevBtn.onclick = () => { track.scrollBy({ left: -getScrollAmount(), behavior: 'smooth' }); };
     nextBtn.onclick = () => { track.scrollBy({ left:  getScrollAmount(), behavior: 'smooth' }); };
