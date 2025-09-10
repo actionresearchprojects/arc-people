@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Preload first of each set -->
   <link rel="preload" href="biogs/portrait/portrait1.webp" as="image" fetchpriority="high">
   <link rel="preload" href="biogs/landscape/landscape1.webp" as="image">
   <style>
@@ -12,14 +11,14 @@
       --arrow-size: clamp(3rem, 8vw, 5rem);
       --vertical-gap: 0vh;
       --horizontal-gap: 0.375rem;
-      --stroke: clamp(2px, 0.208vw, 4px);
+      --stroke: 2px; /* fixed pixel stroke */
     }
     *, *::before, *::after { box-sizing: border-box; }
     html, body {
       margin: 0;
       padding: 0;
       background: transparent;
-      font-family: Ubuntu, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      font-family: Ubuntu, system-ui, sans-serif;
       overflow: hidden;
       height: 100%;
       width: 100%;
@@ -47,7 +46,6 @@
     }
     .carousel-track::-webkit-scrollbar { display: none; }
 
-    /* Reserve space BEFORE images load */
     .carousel-track.portrait .carousel-image { aspect-ratio: 3 / 4; }
     .carousel-track.landscape .carousel-image { aspect-ratio: 4 / 3; }
 
@@ -56,24 +54,14 @@
       flex: 0 0 auto;
       height: 100%;
       border-radius: var(--border-radius);
-      border: var(--stroke) solid #000;
       overflow: hidden;
-      background: #f0f0f0; /* skeleton */
+      background: #f0f0f0;
       display: flex;
       cursor: pointer;
       font-size: 16px;
+      box-shadow: inset 0 0 0 var(--stroke) #000;
+      transform: translateZ(0);
     }
-    .carousel-image::before {
-      /* very light skeleton shimmer */
-      content: "";
-      inset: 0;
-      position: absolute;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
-      transform: translateX(-100%);
-      animation: shimmer 1.2s infinite;
-    }
-    .carousel-image.loaded::before { display: none; }
-    @keyframes shimmer { 100% { transform: translateX(100%); } }
 
     .carousel-image:hover::after {
       content: "";
@@ -134,10 +122,10 @@
       max-width: 98vw;
       max-height: 98vh;
       object-fit: contain;
-      border: clamp(2px, 0.375rem, 6px) solid #000;
       border-radius: var(--border-radius);
       display: block;
       background: #fff;
+      box-shadow: 0 0 0 var(--stroke) #000;
     }
     .info-button {
       position: absolute;
@@ -146,7 +134,7 @@
       aspect-ratio: 1 / 1;
       width: clamp(2rem, 3vw, 2.75rem);
       border-radius: 50%;
-      border: clamp(2px, 0.3vw, 4px) solid #000;
+      border: var(--stroke) solid #000;
       background: #fff;
       color: #000;
       font-family: inherit;
@@ -201,7 +189,6 @@
   </div>
 
   <script>
-    // State
     window.currentPopupLink = '#';
     let links = [];
     let isWide = window.innerWidth >= 800;
@@ -209,7 +196,6 @@
     let imagesLandscapeGlobal = [];
     let lastWidthMode = isWide ? 'wide' : 'narrow';
 
-    // Cache DOM
     const prevBtn  = document.getElementById('prevBtn');
     const nextBtn  = document.getElementById('nextBtn');
     const track    = document.getElementById('track');
@@ -269,14 +255,9 @@
       const img = document.createElement('img');
       img.alt = label || `Image ${idx + 1}`;
       img.decoding = 'async';
-      if (eager) {
-        img.loading = 'eager';
-        img.setAttribute('fetchpriority', 'high');
-      } else {
-        img.loading = 'lazy';
-      }
+      img.loading = eager ? 'eager' : 'lazy';
+      if (eager) img.setAttribute('fetchpriority', 'high');
       img.src = src;
-      img.addEventListener('load', () => container.classList.add('loaded'), { once: true });
 
       const hasValidLink = linkUrl && linkUrl !== '#' && linkUrl.toLowerCase() !== 'n/a';
 
@@ -284,16 +265,8 @@
         container.onclick = () => {
           const newSrc = imagesLandscapeGlobal[idx];
           if (newSrc) {
-            if (popupImg.src !== newSrc) {
-              const preload = new Image();
-              preload.onload = () => {
-                popupImg.src = newSrc;
-                popup.classList.add('visible');
-              };
-              preload.src = newSrc;
-            } else {
-              popup.classList.add('visible');
-            }
+            popupImg.src = newSrc;
+            popup.classList.add('visible');
           }
           window.currentPopupLink = hasValidLink ? linkUrl : '#';
           infoBtn.style.display = hasValidLink ? 'flex' : 'none';
@@ -315,30 +288,21 @@
     }
 
     async function renderCarousel() {
-      // Fetch link metadata
       links = await fetchLinks();
       const count = links.length;
-      if (!count) {
-        track.innerHTML = '';
-        updateControls();
-        return;
-      }
+      if (!count) { track.innerHTML = ''; updateControls(); return; }
 
-      // Mode and sources
       isWide = window.innerWidth >= 800;
       const newModeClass = isWide ? 'portrait' : 'landscape';
       track.classList.remove('portrait', 'landscape');
       track.classList.add(newModeClass);
-      modeClass = newModeClass;
 
       const imagesPortrait  = generateImages('portrait',  count);
       const imagesLandscape = generateImages('landscape', count);
       imagesLandscapeGlobal = imagesLandscape;
 
-      // As per your requirement: wide -> PORTRAIT, narrow -> LANDSCAPE
       const sources = isWide ? imagesPortrait : imagesLandscape;
 
-      // Paint fast: eager-load the first 4 tiles
       track.innerHTML = '';
       sources.forEach((src, i) => {
         const entry = links[i] || {};
@@ -349,22 +313,16 @@
       requestAnimationFrame(updateControls);
     }
 
-    // Controls and events
     prevBtn.onclick = () => { track.scrollBy({ left: -getScrollAmount(), behavior: 'smooth' }); };
     nextBtn.onclick = () => { track.scrollBy({ left:  getScrollAmount(), behavior: 'smooth' }); };
     track.addEventListener('scroll', updateControls);
 
-    // Only re-render if we actually cross the 800px breakpoint
-    let resizeRAF = null;
     window.addEventListener('resize', () => {
-      if (resizeRAF) cancelAnimationFrame(resizeRAF);
-      resizeRAF = requestAnimationFrame(() => {
-        const nowMode = window.innerWidth >= 800 ? 'wide' : 'narrow';
-        if (nowMode !== lastWidthMode) {
-          lastWidthMode = nowMode;
-          renderCarousel();
-        }
-      });
+      const nowMode = window.innerWidth >= 800 ? 'wide' : 'narrow';
+      if (nowMode !== lastWidthMode) {
+        lastWidthMode = nowMode;
+        renderCarousel();
+      }
     });
 
     popup.onclick = e => { if (e.target === popup) popup.classList.remove('visible'); };
